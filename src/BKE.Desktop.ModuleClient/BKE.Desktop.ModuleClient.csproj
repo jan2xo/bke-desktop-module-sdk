@@ -9,13 +9,13 @@
     <Description>Pre-API scaffold for future BKE desktop module integration mechanics.</Description>
     <PackageTags>bke;desktop;module</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/jan2xo/bke-desktop-module-sdk</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
+    <None Include="$(MSBuildProjectDirectory)/../../README.md" Pack="true" PackagePath="README.md" />
+    <None Include="$(MSBuildProjectDirectory)/../../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

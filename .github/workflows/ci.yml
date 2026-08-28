@@ -67,7 +67,7 @@ jobs:
           unzip -p "$package" '*.nuspec' > artifacts/package.nuspec
           unzip -p "$package" README.md > artifacts/README.md
           unzip -p "$package" LICENSE > artifacts/LICENSE
-          unzip -l "$package" | grep -q 'lib/net8.0-windows/BKE.Desktop.ModuleClient.dll'
+          unzip -l "$package" | grep -q 'lib/net8.0-windows7.0/BKE.Desktop.ModuleClient.dll'
           grep -q '<id>BKE.Desktop.ModuleClient</id>' artifacts/package.nuspec
           grep -q '<version>0.1.0</version>' artifacts/package.nuspec
           grep -q '<readme>README.md</readme>' artifacts/package.nuspec
