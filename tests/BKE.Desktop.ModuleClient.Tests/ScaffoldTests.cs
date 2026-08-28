@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace BkeDesktopModuleClient.Tests;
 
 public sealed class ScaffoldTests
