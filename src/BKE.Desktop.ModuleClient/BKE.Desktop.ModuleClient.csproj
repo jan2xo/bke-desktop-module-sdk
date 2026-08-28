@@ -16,6 +16,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(MSBuildProjectDirectory)/../../README.md" Pack="true" PackagePath="README.md" />
-    <None Include="$(MSBuildProjectDirectory)/../../LICENSE" Pack="true" PackagePath="LICENSE" />
+    <None Include="$(MSBuildProjectDirectory)/../../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>
