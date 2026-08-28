@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Verify .NET 8 SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet --info
+          version="$(dotnet --version)"
+          [[ "$version" == 8.0.* ]] || { echo "Expected .NET 8 SDK, got $version"; exit 1; }
+
+      - name: Restore
+        run: dotnet restore BKE.Desktop.Module.SDK.sln
+
+      - name: Build Release
+        run: dotnet build BKE.Desktop.Module.SDK.sln --configuration Release --no-restore
+
+      - name: Verify build output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s src/BKE.Desktop.ModuleClient/bin/Release/net8.0-windows/BKE.Desktop.ModuleClient.dll
+
+      - name: Test Release
+        run: dotnet test tests/BKE.Desktop.ModuleClient.Tests/BKE.Desktop.ModuleClient.Tests.csproj --configuration Release --no-build --no-restore --logger "trx;LogFileName=module-client-tests.trx"
+
+      - name: Verify test evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s tests/BKE.Desktop.ModuleClient.Tests/TestResults/module-client-tests.trx
+          grep -q 'total="' tests/BKE.Desktop.ModuleClient.Tests/TestResults/module-client-tests.trx
+
+      - name: Pack Release
+        run: dotnet pack src/BKE.Desktop.ModuleClient/BKE.Desktop.ModuleClient.csproj --configuration Release --no-restore --output ./artifacts/package
+
+      - name: Verify package
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          packages=(artifacts/package/*.nupkg)
+          [[ "${#packages[@]}" -eq 1 ]] || { echo "Expected exactly one package"; exit 1; }
+          package="${packages[0]}"
+          [[ "$(basename "$package")" == "BKE.Desktop.ModuleClient.0.1.0.nupkg" ]]
+          unzip -l "$package" | tee artifacts/package-contents.txt
+          unzip -p "$package" '*.nuspec' > artifacts/package.nuspec
+          unzip -p "$package" README.md > artifacts/README.md
+          unzip -p "$package" LICENSE > artifacts/LICENSE
+          unzip -l "$package" | grep -q 'lib/net8.0-windows/BKE.Desktop.ModuleClient.dll'
+          grep -q '<id>BKE.Desktop.ModuleClient</id>' artifacts/package.nuspec
+          grep -q '<version>0.1.0</version>' artifacts/package.nuspec
+          grep -q '<readme>README.md</readme>' artifacts/package.nuspec
+          grep -q 'STATUS: SCAFFOLD / PRE-API' artifacts/README.md
+          test -s artifacts/LICENSE
+
+      - name: Upload package and evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: bke-desktop-module-sdk-0.1.0
+          path: |
+            artifacts/package/BKE.Desktop.ModuleClient.0.1.0.nupkg
+            artifacts/package-contents.txt
+            artifacts/package.nuspec
+            artifacts/README.md
+            artifacts/LICENSE
+            tests/BKE.Desktop.ModuleClient.Tests/TestResults/module-client-tests.trx
+          if-no-files-found: error
